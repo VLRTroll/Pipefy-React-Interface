@@ -1,15 +1,15 @@
-import React, { useRef } from "react";
+import React, { useRef, useContext } from "react";
 import { useDrag, useDrop } from "react-dnd";
 
 import BoardContext from "../Board/context";
-
 import { Container, Label } from "./styles";
 
-export default function Card({ data, index, moveFunc: move }) {
+export default function Card({ data, index, listIndex }) {
   const ref = useRef();
+  const { move } = useContext(BoardContext);
 
   const [{ isDragging }, dragRef] = useDrag({
-    item: { type: "CARD", index },
+    item: { type: "CARD", index, listIndex },
     collect: monitor => ({
       isDragging: monitor.isDragging()
     })
@@ -18,9 +18,11 @@ export default function Card({ data, index, moveFunc: move }) {
   const [, dropRef] = useDrop({
     accept: "CARD",
     hover(item, monitor) {
+      const draggedList = item.listIndex;
+      const targetList = listIndex;
       const draggedIndex = item.index;
       const targetIndex = index;
-      if (draggedIndex === targetIndex)
+      if (draggedIndex === targetIndex && draggedList === targetList)
         return; /* Se estiver por cima do mesmo card */
 
       const {
@@ -42,8 +44,9 @@ export default function Card({ data, index, moveFunc: move }) {
       )
         return; /* se está abaixo do meio do card estritamente posterior */
 
-      move(draggedIndex, targetIndex);
+      move(draggedList, targetList, draggedIndex, targetIndex);
       item.index = targetIndex; /* Atualiza o indice do card durante o arrasto */
+      item.listIndex = targetList; /* atualiza o indice da lista do card que está sendo arrastado */
     }
   });
 
